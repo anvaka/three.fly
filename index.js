@@ -5,7 +5,12 @@
  * Adopted to common js by Andrei Kashcha
  */
 
-module.exports = function(object, domElement) {
+var eventify = require('ngraph.events');
+
+module.exports = fly;
+
+function fly(object, domElement, THREE) {
+  eventify(this);
 
   this.object = object;
 
@@ -39,8 +44,12 @@ module.exports = function(object, domElement) {
     rollLeft: 0,
     rollRight: 0
   };
-  this.moveVector = new THREE.Vector3(0, 0, 0);
-  this.rotationVector = new THREE.Vector3(0, 0, 0);
+  var moveVector = this.moveVector = new THREE.Vector3(0, 0, 0);
+  var rotationVector = this.rotationVector = new THREE.Vector3(0, 0, 0);
+  var moveArgs = {
+    move: moveVector,
+    rotate: rotationVector
+  };
 
   this.keydown = function(event) {
     if (event.altKey) {
@@ -93,8 +102,11 @@ module.exports = function(object, domElement) {
       case 69:
         /*E*/ this.moveState.rollRight = 1;
         break;
+      default:
+        return;
     }
 
+    this.fire('move', moveArgs);
     this.updateMovementVector();
     this.updateRotationVector();
   };
@@ -147,11 +159,13 @@ module.exports = function(object, domElement) {
       case 69:
         /*E*/ this.moveState.rollRight = 0;
         break;
+      default:
+        return;
     }
 
     this.updateMovementVector();
     this.updateRotationVector();
-
+    this.fire('move', moveArgs);
   };
 
   this.mousedown = function(event) {
@@ -180,6 +194,7 @@ module.exports = function(object, domElement) {
       this.updateMovementVector();
     }
 
+    this.fire('move', moveArgs);
   };
 
   this.mousemove = function(event) {
@@ -192,6 +207,7 @@ module.exports = function(object, domElement) {
       this.moveState.pitchDown = ((event.pageY - container.offset[1]) - halfHeight) / halfHeight;
 
       this.updateRotationVector();
+      this.fire('move', moveArgs);
     }
   };
 
@@ -215,6 +231,7 @@ module.exports = function(object, domElement) {
     }
 
     this.updateRotationVector();
+    this.fire('move', moveArgs);
   };
 
   this.update = function(delta) {
@@ -275,4 +292,4 @@ module.exports = function(object, domElement) {
 
   this.updateMovementVector();
   this.updateRotationVector();
-};
+}

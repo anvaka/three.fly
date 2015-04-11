@@ -18,5 +18,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/anvaka/three.fly"
+  },
+  "dependencies": {
+    "ngraph.events": "0.0.3"
   }
 }
