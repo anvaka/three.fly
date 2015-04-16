@@ -180,7 +180,7 @@ function fly(object, domElement, THREE) {
     event.stopPropagation();
 
     if (this.dragToLook) {
-      this.mouseStatus++;
+      this.mouseStatus = 1;
     } else {
       switch (event.button) {
         case 0:
@@ -216,7 +216,7 @@ function fly(object, domElement, THREE) {
     event.stopPropagation();
 
     if (this.dragToLook) {
-      this.mouseStatus--;
+      this.mouseStatus = 0;
       this.moveState.yawLeft = this.moveState.pitchDown = 0;
     } else {
       switch (event.button) {
