@@ -6,6 +6,7 @@
  */
 
 var eventify = require('ngraph.events');
+var createKeyMap = require('./keymap.js');
 
 module.exports = fly;
 
@@ -18,13 +19,25 @@ function fly(camera, domElement, THREE) {
     movementSpeed: 1,
     dragToLook: true,
     autoForward: false,
-    update: update
+    /**
+     * Requests to update camera position according to the currently pressed
+     * keys/mouse
+     */
+    update: update,
+
+    /**
+     * Releases all event handlers
+     */
+    destroy: destroy
   };
 
   eventify(api);
 
   var tmpQuaternion = new THREE.Quaternion();
   var isMouseDown = 0;
+  var keyMap = createKeyMap();
+  // we will remember what keys should be releaed in global keyup handler:
+  var pendingKeyUp = Object.create(null);
 
   var moveState = {
     up: 0,
@@ -49,12 +62,15 @@ function fly(camera, domElement, THREE) {
     rotate: rotationVector
   };
 
-  domElement.addEventListener('mousemove', mousemove, false);
+  // these are local to the scene container. We want to initiate actions only
+  // when we have focus
   domElement.addEventListener('mousedown', mousedown, false);
-  domElement.addEventListener('mouseup', mouseup, false);
-
   domElement.addEventListener('keydown', keydown, false);
-  domElement.addEventListener('keyup', keyup, false);
+
+  // These are global since we can loose control otherwise and miss keyup/move
+  // events.
+  document.addEventListener('mousemove', mousemove, false);
+  document.addEventListener('keyup', keyup, false);
 
   updateMovementVector();
   updateRotationVector();
@@ -77,108 +93,29 @@ function fly(camera, domElement, THREE) {
   }
 
   function keydown(event) {
-    if (event.altKey) {
-      return;
+    if (isModifierKey(event)) return;
+
+    var motion = keyMap[event.keyCode];
+    if (motion) {
+      moveState[motion.name] = 1;
+      // we need to make sure that global key up event clears this motion:
+      pendingKeyUp[event.keyCode] = true;
+
+      updateMovementVector();
+      updateRotationVector();
+      api.fire('move', moveArgs);
     }
+  }
 
-    switch (event.keyCode) {
-      case 87:
-        /*W*/ moveState.forward = 1;
-        break;
-      case 83:
-        /*S*/ moveState.back = 1;
-        break;
-
-      case 65:
-        /*A*/ moveState.left = 1;
-        break;
-      case 68:
-        /*D*/ moveState.right = 1;
-        break;
-
-      case 82:
-        /*R*/ moveState.up = 1;
-        break;
-      case 70:
-        /*F*/ moveState.down = 1;
-        break;
-
-      case 38:
-        /*up*/ moveState.pitchUp = 1;
-        break;
-      case 40:
-        /*down*/ moveState.pitchDown = 1;
-        break;
-
-      case 37:
-        /*left*/ moveState.yawLeft = 1;
-        break;
-      case 39:
-        /*right*/ moveState.yawRight = 1;
-        break;
-
-      case 81:
-        /*Q*/ moveState.rollLeft = 1;
-        break;
-      case 69:
-        /*E*/ moveState.rollRight = 1;
-        break;
-      default:
-        return;
-    }
-
-    api.fire('move', moveArgs);
-    updateMovementVector();
-    updateRotationVector();
+  function isModifierKey(e) {
+    return e.altKey || e.ctrlKey || e.metaKey;
   }
 
   function keyup(event) {
-
-    switch (event.keyCode) {
-      case 87:
-        /*W*/ moveState.forward = 0;
-        break;
-      case 83:
-        /*S*/ moveState.back = 0;
-        break;
-
-      case 65:
-        /*A*/ moveState.left = 0;
-        break;
-      case 68:
-        /*D*/ moveState.right = 0;
-        break;
-
-      case 82:
-        /*R*/ moveState.up = 0;
-        break;
-      case 70:
-        /*F*/ moveState.down = 0;
-        break;
-
-      case 38:
-        /*up*/ moveState.pitchUp = 0;
-        break;
-      case 40:
-        /*down*/ moveState.pitchDown = 0;
-        break;
-
-      case 37:
-        /*left*/ moveState.yawLeft = 0;
-        break;
-      case 39:
-        /*right*/ moveState.yawRight = 0;
-        break;
-
-      case 81:
-        /*Q*/ moveState.rollLeft = 0;
-        break;
-      case 69:
-        /*E*/ moveState.rollRight = 0;
-        break;
-      default:
-        return;
-    }
+    if (!pendingKeyUp[event.keyCode]) return;
+    pendingKeyUp[event.keyCode] = false;
+    var motion = keyMap[event.keyCode];
+    moveState[motion.name] = 0;
 
     updateMovementVector();
     updateRotationVector();
@@ -189,6 +126,8 @@ function fly(camera, domElement, THREE) {
     if (domElement !== document) {
       domElement.focus();
     }
+
+    document.addEventListener('mouseup', mouseup, false);
 
     event.preventDefault();
     event.stopPropagation();
@@ -228,9 +167,12 @@ function fly(camera, domElement, THREE) {
   function mouseup(event) {
     event.preventDefault();
     event.stopPropagation();
+    if (isMouseDown) {
+      document.removeEventListener('mouseup', mouseup);
+      isMouseDown = false;
+    }
 
     if (api.dragToLook) {
-      isMouseDown = false;
       moveState.yawLeft = moveState.pitchDown = 0;
     } else {
       switch (event.button) {
@@ -275,5 +217,13 @@ function fly(camera, domElement, THREE) {
         offset: [0, 0]
       };
     }
+  }
+
+  function destroy() {
+    document.removeEventListener('mouseup', mouseup);
+    document.removeEventListener('mousemove', mousemove, false);
+    document.removeEventListener('keyup', keyup, false);
+    domElement.removeEventListener('mousedown', mousedown, false);
+    domElement.removeEventListener('keydown', keydown, false);
   }
 }
