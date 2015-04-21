@@ -14,31 +14,6 @@ function fly(camera, domElement, THREE) {
   domElement = domElement || document;
   domElement.setAttribute('tabindex', -1);
 
-  var api = {
-    rollSpeed: 0.005,
-    movementSpeed: 1,
-    dragToLook: true,
-    autoForward: false,
-    /**
-     * Requests to update camera position according to the currently pressed
-     * keys/mouse
-     */
-    update: update,
-
-    /**
-     * Releases all event handlers
-     */
-    destroy: destroy
-  };
-
-  eventify(api);
-
-  var tmpQuaternion = new THREE.Quaternion();
-  var isMouseDown = 0;
-  var keyMap = createKeyMap();
-  // we will remember what keys should be releaed in global keyup handler:
-  var pendingKeyUp = Object.create(null);
-
   var moveState = {
     up: 0,
     down: 0,
@@ -53,6 +28,38 @@ function fly(camera, domElement, THREE) {
     rollLeft: 0,
     rollRight: 0
   };
+
+
+  var api = {
+    rollSpeed: 0.005,
+    movementSpeed: 1,
+    dragToLook: true,
+    autoForward: false,
+    /**
+     * Requests to update camera position according to the currently pressed
+     * keys/mouse
+     */
+    update: update,
+
+    /**
+     * Releases all event handlers
+     */
+    destroy: destroy,
+
+    /**
+     * This allows external developers to better control our internal state
+     * Super flexible, yet a bit dangerous
+     */
+    moveState: moveState
+  };
+
+  eventify(api);
+
+  var tmpQuaternion = new THREE.Quaternion();
+  var isMouseDown = 0;
+  var keyMap = createKeyMap();
+  // we will remember what keys should be releaed in global keyup handler:
+  var pendingKeyUp = Object.create(null);
 
   var moveVector = new THREE.Vector3(0, 0, 0);
   var rotationVector = new THREE.Vector3(0, 0, 0);
