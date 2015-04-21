@@ -50,7 +50,10 @@ function fly(camera, domElement, THREE) {
      * This allows external developers to better control our internal state
      * Super flexible, yet a bit dangerous
      */
-    moveState: moveState
+    moveState: moveState,
+
+    updateMovementVector: updateMovementVector,
+    updateRotationVector: updateRotationVector
   };
 
   eventify(api);
