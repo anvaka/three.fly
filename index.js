@@ -53,7 +53,14 @@ function fly(camera, domElement, THREE) {
     moveState: moveState,
 
     updateMovementVector: updateMovementVector,
-    updateRotationVector: updateRotationVector
+    updateRotationVector: updateRotationVector,
+
+    /**
+     * Toggles dragToLook setting. When dragToLook is set to false, then
+     * camera always attempts to focus on current mouse position. The only
+     * stable point in the visualization is middle of the screen.
+     */
+    toggleDragToLook: toggleDragToLook
   };
 
   eventify(api);
@@ -86,6 +93,16 @@ function fly(camera, domElement, THREE) {
   updateRotationVector();
 
   return api;
+
+  function toggleDragToLook() {
+    api.dragToLook = !api.dragToLook;
+    api.moveState.yawLeft = 0;
+    api.moveState.pitchDown = 0;
+
+    updateRotationVector();
+
+    return api.dragToLook;
+  }
 
   function update(delta) {
     var moveMult = delta * api.movementSpeed;
