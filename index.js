@@ -42,6 +42,11 @@ function fly(camera, domElement, THREE) {
     update: update,
 
     /**
+     * Returns true if we are moving camera at the moment
+     */
+    isMoving: isMoving,
+
+    /**
      * Releases all event handlers
      */
     destroy: destroy,
@@ -93,6 +98,21 @@ function fly(camera, domElement, THREE) {
   updateRotationVector();
 
   return api;
+
+  function isMoving() {
+    return moveState.up
+            || moveState.down
+            || moveState.left
+            || moveState.right
+            || moveState.forward
+            || moveState.back
+            || moveState.pitchUp
+            || moveState.pitchDown
+            || moveState.yawLeft
+            || moveState.yawRight
+            || moveState.rollLeft
+            || moveState.rollRight;
+  }
 
   function toggleDragToLook() {
     api.dragToLook = !api.dragToLook;
@@ -157,7 +177,7 @@ function fly(camera, domElement, THREE) {
     document.addEventListener('mouseup', mouseup, false);
 
     event.preventDefault();
-    event.stopPropagation();
+    //event.stopPropagation();
 
     if (api.dragToLook) {
       isMouseDown = true;
@@ -193,7 +213,7 @@ function fly(camera, domElement, THREE) {
 
   function mouseup(event) {
     event.preventDefault();
-    event.stopPropagation();
+
     if (isMouseDown) {
       document.removeEventListener('mouseup', mouseup);
       isMouseDown = false;
