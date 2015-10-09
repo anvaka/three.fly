@@ -7,7 +7,10 @@ to common js module, with major rewrite of internal structure.
 
 ``` js
 // 1. Create fly controls:
-var fly = require('three.fly');
+// container is a DOM element where you want to receive input 
+// e.g.: document.body
+// THREE is a main namespace of three.js
+var fly = require('three.fly', container, THREE);
 var controls = fly(camera);
 
 // 2. Inside your update scene loop (e.g. inside requestAnimationFrame()):
