@@ -10,8 +10,8 @@ to common js module, with major rewrite of internal structure.
 // container is a DOM element where you want to receive input 
 // e.g.: document.body
 // THREE is a main namespace of three.js
-var fly = require('three.fly', container, THREE);
-var controls = fly(camera);
+var fly = require('three.fly');
+var controls = fly(camera, container, THREE);
 
 // 2. Inside your update scene loop (e.g. inside requestAnimationFrame()):
 controls.update(1); // `1` is time delta.
