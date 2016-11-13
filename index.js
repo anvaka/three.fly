@@ -6,11 +6,26 @@
  */
 
 var eventify = require('ngraph.events');
-var createKeyMap = require('./keymap.js');
+var verifyOptions = require('./options.js');
 
 module.exports = fly;
 
 function fly(camera, domElement, THREE) {
+  var options;
+
+  if (THREE === undefined) {
+    options = verifyOptions(camera);
+    camera = options.camera;
+    domElement = options.domElement;
+    THREE = options.THREE;
+  } else {
+    options = verifyOptions({
+      camera: camera,
+      domElement: domElement,
+      THREE: THREE
+    });
+  }
+  
   domElement = domElement || document;
   domElement.setAttribute('tabindex', -1);
 
@@ -72,7 +87,7 @@ function fly(camera, domElement, THREE) {
 
   var tmpQuaternion = new THREE.Quaternion();
   var isMouseDown = 0;
-  var keyMap = createKeyMap();
+  var keyMap = options.keyMap;
   // we will remember what keys should be releaed in global keyup handler:
   var pendingKeyUp = Object.create(null);
 
